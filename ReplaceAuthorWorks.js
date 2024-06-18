@@ -49,9 +49,10 @@ author = author.substring(0, pos);
 
 // make the url to get the json containing the author's stories
 // https://literotica.com/api/3/users/BlackJackSteele/           series_and_works?params={%22page%22%3A1%2C%22pageSize%22%3A5000%2C%22type%22%3A%22story%22%2C%22listType%22%3A%22expanded%22}
-var jsonUrl = "https://literotica.com/api/3/users/" + author + "/series_and_works?params={%22page%22%3A1%2C%22pageSize%22%3A5000%2C%22type%22%3A%22story%22%2C%22listType%22%3A%22expanded%22}";
+var storyUrl = "https://literotica.com/api/3/users/" + author + "/series_and_works?params={%22page%22%3A1%2C%22pageSize%22%3A5000%2C%22type%22%3A%22story%22%2C%22listType%22%3A%22expanded%22}";
 var poemUrl = "https://literotica.com/api/3/users/" + author + "/series_and_works?params={%22page%22%3A1%2C%22pageSize%22%3A5000%2C%22type%22%3A%22poem%22%2C%22listType%22%3A%22expanded%22}";
-
+var artUrl =  "https://literotica.com/api/3/users/" + author + "/series_and_works?params={%22page%22%3A1%2C%22pageSize%22%3A5000%2C%22type%22%3A%22illustra%22%2C%22listType%22%3A%22expanded%22}";
+var audioUrl =  "https://literotica.com/api/3/users/" + author + "/series_and_works?params={%22page%22%3A1%2C%22pageSize%22%3A5000%2C%22type%22%3A%22audio%22%2C%22listType%22%3A%22expanded%22}";
 
 GM_addStyle("th { padding: 2px !important; font-size: 14px !important;  white-space:nowrap !important; border: 1px solid black !important; text-align: center !important;} " +
             "td { padding: 2px !important; font-size: 11px !important;  white-space:nowrap !important; border: 1px solid black !important; padding-right: 6px !important;} " +
@@ -149,14 +150,81 @@ fixThePage();
 // ------------------------
 
 // return the response from the url
-function Get(url){
+function Get(author, category)
+{
+    var catPart;
+	switch (category) {
+	  case "story" :
+	    catPart = "s";
+		break;
+	  case "poem" :
+	    catPart = "p";
+		break;
+	  case "illustra" :
+	    catPart = "i";
+		break;
+	  case "audio" :
+	    catPart = "s";
+		break;
+	}
+    var url = "https://literotica.com/api/3/users/" + author + "/series_and_works?params={%22page%22%3A1%2C%22pageSize%22%3A5000%2C%22type%22%3A%22" + category + "%22%2C%22listType%22%3A%22expanded%22}";
     var Httpreq = new XMLHttpRequest(); // a new request
     Httpreq.open("GET",url,false);
     Httpreq.setRequestHeader("Cache-Control", "no-cache, no-store, max-age=0");
     Httpreq.setRequestHeader("Expires", "Tue, 01 Jan 1980 1:00:00 GMT");
     Httpreq.setRequestHeader("Pragma", "no-cache");
     Httpreq.send(null);
-    return Httpreq.responseText;
+
+    var jsonObj = JSON.parse(Httpreq.responseText);
+
+    var storyObj = jsonObj.data;
+
+    // create array that we will use
+    const storyData = [];
+
+    if (storyObj.length < 1) {
+        return storyData;
+    }
+
+    // function to pad a number with zeros
+    const zeroPad = (num, places) => String(num).padStart(places, '0');
+
+    // iterate through json story info and add to story array
+    for (var i = 0; i < storyObj.length; i++)
+    {
+        var st = storyObj[i];
+
+        if (st.parts == null) {
+            // single-chapter
+            storyData.push({title:st.title,
+                                 sort_title:mangleTitle(st.title),
+                                 date:new Date(st.date_approve).toISOString().slice(0, 10),
+                                 url:"https://www.literotica.com/" + catPart + "/"+st.url,
+                                 description:st.description,
+                                 category:st.category_info.pageUrl,
+                                 rating:st.rate_all,
+                                 is_hot:st.is_hot,
+                                 is_new:st.is_new
+                                });
+        }
+        else {
+            // multi-chapter.  add each individual chapter.
+            for (var j = 0; j < st.parts.length; j++) {
+                var part = st.parts[j];
+                storyData.push({title:st.title + " " + zeroPad(j+1,2) + " - " + part.title,
+                                     sort_title:mangleTitle(st.title + " " + zeroPad(j+1,2) + " - " + part.title),
+                                     date:new Date(part.date_approve).toISOString().slice(0, 10),
+                                     url:"https://www.literotica.com/" + catPart + "/"+part.url,
+                                     description:part.description,
+                                     category:part.category_info.pageUrl,
+                                     rating:part.rate_all,
+                                     is_hot:part.is_hot,
+                                     is_new:part.is_new
+                                    });
+            }
+        }
+    }
+	return storyData;
 }
 
 function mangleTitle(title)
@@ -197,61 +265,14 @@ function fixThePage() {
 
     var page = pageList.snapshotItem(0);
 
-    // query the api, then parse it and load it
-    var jsonText = Get(jsonUrl);
-
-    var jsonObj = JSON.parse(jsonText);
-
-    var storyObj = jsonObj.data;
-
-    if (storyObj.length < 1) {
-        return;
-    }
-
     // create array that we will use
-    const storyData = [];
-
-    // function to pad a number with zeros
-    const zeroPad = (num, places) => String(num).padStart(places, '0');
-
-    // iterate through json story info and add to story array
-    for (var i = 0; i < storyObj.length; i++)
-    {
-        var st = storyObj[i];
-
-        if (st.parts == null) {
-            // single-chapter
-            storyData.push({title:st.title,
-                                 sort_title:mangleTitle(st.title),
-                                 date:new Date(st.date_approve).toISOString().slice(0, 10),
-                                 url:"https://www.literotica.com/s/"+st.url,
-                                 description:st.description,
-                                 category:st.category_info.pageUrl,
-                                 rating:st.rate_all,
-                                 is_hot:st.is_hot,
-                                 is_new:st.is_new
-                                });
-        }
-        else {
-            // multi-chapter.  add each individual chapter.
-            for (var j = 0; j < st.parts.length; j++) {
-                var part = st.parts[j];
-                storyData.push({title:st.title + " " + zeroPad(j+1,2) + " - " + part.title,
-                                     sort_title:mangleTitle(st.title + " " + zeroPad(j+1,2) + " - " + part.title),
-                                     date:new Date(part.date_approve).toISOString().slice(0, 10),
-                                     url:"https://www.literotica.com/s/"+part.url,
-                                     description:part.description,
-                                     category:part.category_info.pageUrl,
-                                     rating:part.rate_all,
-                                     is_hot:part.is_hot,
-                                     is_new:part.is_new
-                                    });
-            }
-        }
-    }
+    const storyData = Get(author, "story");
+	
+	if (storyData.length == 0) {
+	  return;
+	}
 
     // Sort stories by title
-
     storyData.sort(function(a, b){return a.sort_title.localeCompare(b.sort_title)});
 
     // Make the page body using the story array
