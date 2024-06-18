@@ -55,14 +55,22 @@ var newScript = document.createElement("script");
 
 newScript.innerText =
 "var sortOrder = 1; " +
-"var sortColumn = \"title\"; " +
+"const sortInfo = new Map([" +
+"['story', {order: 1, col: 'title'}]," +
+"['poem', {order: 1, col: 'title'}]," +
+"['illustra', {order: 1, col: 'title'}]," +
+"['audio', {order: 1, col: 'title'}]" +
+"]);" +
+
 "function sortTable(col, category) " +
 "{" +
-  "if (sortColumn == col) {" +
+  "sortOrder = sortInfo.get(category).order;"+
+  "if (sortInfo.get(category).col == col) {" +
   "  sortOrder = -sortOrder;" +
+  "  sortInfo.set(category, {order: sortOrder, col: col});" +
   "}" +
   "else {" +
-  "  sortColumn = col;" +
+  "  sortInfo.set(category, {order: 1, col: col});" +
   "  sortOrder = 1;" +
   "}" +
 
@@ -88,10 +96,10 @@ newScript.innerText =
 "{" +
 "    var tableBody = " +
 "        \"<table><tr>\" +" +
-"        \"<th><b><a href=\\\"#\\\" onClick=\\\"sortTable('title',category)\\\">Title</a></b></th>\" +" +
+"        \"<th><b><a href=\\\"#\\\" onClick=\\\"sortTable('title','\" + category + \"')\\\">Title</a></b></th>\" +" +
 "        \"<th></th>\" +" +
-"        \"<th><b><a href=\\\"#\\\" onClick=\\\"sortTable('date',category)\\\">Date</a></b></th>\" +" +
-"        \"<th><b><a href=\\\"#\\\" onClick=\\\"sortTable('category',category)\\\">Category</a></b></th>\" +" +
+"        \"<th><b><a href=\\\"#\\\" onClick=\\\"sortTable('date','\" + category + \"')\\\">Date</a></b></th>\" +" +
+"        \"<th><b><a href=\\\"#\\\" onClick=\\\"sortTable('category','\" + category + \"')\\\">Category</a></b></th>\" +" +
 "        \"</tr>\";" +
 "    for (var i = 0; i < stories.length; i++) {" +
 "        var story = stories[i];" +
@@ -176,7 +184,6 @@ function Get(author, category)
         if (st.parts == null) {
             // single-chapter
 			urlPart = st.category_info.type.slice(0,1);
-                debugger;
             storyData.push({title:st.title,
                                  sort_title:mangleTitle(st.title),
                                  date:new Date(st.date_approve).toISOString().slice(0, 10),
@@ -193,7 +200,6 @@ function Get(author, category)
             for (var j = 0; j < st.parts.length; j++) {
                 var part = st.parts[j];
  			    urlPart = part.category_info.type.slice(0,1);
-                debugger;
                 storyData.push({title:st.title + " " + zeroPad(j+1,2) + " - " + part.title,
                                      sort_title:mangleTitle(st.title + " " + zeroPad(j+1,2) + " - " + part.title),
                                      date:new Date(part.date_approve).toISOString().slice(0, 10),
