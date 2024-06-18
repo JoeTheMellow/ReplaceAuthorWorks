@@ -50,7 +50,9 @@ author = author.substring(0, pos);
 // make the url to get the json containing the author's stories
 var jsonUrl = "https://literotica.com/api/3/users/" + author + "/series_and_works?params=%7B%22page%22%3A1%2C%22pageSize%22%3A5000%2C%22sort%22%3A%22title%22%2C%22type%22%3A%22story%22%2C%22listType%22%3A%22expanded%22%7D";
 
-GM_addStyle("td { padding: 2px !important; font-size: 11px !important;  white-space:nowrap !important;} a {color:blue !important;} a:visited {color: purple !important;}");
+GM_addStyle("th { padding: 2px !important; font-size: 14px !important;  white-space:nowrap !important; border: 1px solid black !important; text-align: center !important;} " +
+            "td { padding: 2px !important; font-size: 11px !important;  white-space:nowrap !important; border: 1px solid black !important; padding-right: 6px !important;} " +
+            "a {color:blue !important;} a:visited {color: purple !important;}");
 
 var newScript = document.createElement("script");
 
@@ -144,9 +146,9 @@ function makeTable(stories, id, display)
 
     var tableBody = "<div id=\"" + id + "\" style=\"display:" + display + ";\">" +
         "<table" + tableStyle + "><tr>" +
-        "<th align=center><b><a href=\"#\" onClick='sortByTitle()'>Title</a></b></th>" +
+        "<th><b><a href=\"#\" onClick='sortByTitle()'>Title</a></b></th>" +
         "<th></th>" +
-        "<th align=center><b><a href=\"#\" onClick='sortByDate()'>Date</a></b></th>" +
+        "<th><b><a href=\"#\" onClick='sortByDate()'>Date</a></b></th>" +
         "<th><b><a href=\"#\" onClick='sortByCategory()'>Category</a></b></th>" +
         "</tr>";
 
