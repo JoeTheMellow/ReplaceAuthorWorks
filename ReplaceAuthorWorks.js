@@ -118,7 +118,7 @@ function storyRating(story)
 
 function makeTable(stories, id, display)
 {
-    // now we have the story array.  Interate through it and add to a table.
+    // now we have the story array.  Add to a table.
 
     var tableStyle = ""; //" style=\"width:100%;\"";
 
@@ -150,7 +150,7 @@ function makeTable(stories, id, display)
             "<td" + cellStyle + "><a style=\"color:blue;\" href=\"" + story.url + "\">" + story.title + "</a>" + storyRating(story) + "</td>" +
             "<td" + cellStyle + ">" + story.description + "</td>" +
             "<td align=center" + cellStyle + ">" + story.date + "</td>" +
-            "<td" + cellStyle + "><a style=\"color:blue;\" href=\"https://www.literotica.com/c/" + story.category+ "\">" + story.category + "</a></td>" +
+            "<td" + cellStyle + "><a target=\"_self\" style=\"color:blue;\" href=\"https://www.literotica.com/c/" + story.category+ "\">" + story.category + "</a></td>" +
             "</tr>";
     }
 
@@ -189,7 +189,7 @@ function fixThePage() {
         return;
     }
 
-    var storyAuthor = storyObj[0].author.username;
+    var storyAuthor = null;
 
     // create array that we will use
     const storiesByTitle = [];
@@ -214,6 +214,9 @@ function fixThePage() {
                                  is_hot:st.is_hot,
                                  is_new:st.is_new
                                 });
+            if (storyAuthor == null) {
+                storyAuthor = st.author.username;
+            }
         }
         else {
             // multi-chapter.  add each individual chapter.
@@ -249,7 +252,6 @@ function fixThePage() {
         makeTable(storiesByCategory, "stories_by_category", "none");
 
     page.innerHTML = pageBody;
-
 }
 
 
