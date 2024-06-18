@@ -50,7 +50,7 @@ author = author.substring(0, pos);
 // make the url to get the json containing the author's stories
 var jsonUrl = "https://literotica.com/api/3/users/" + author + "/series_and_works?params=%7B%22page%22%3A1%2C%22pageSize%22%3A5000%2C%22sort%22%3A%22title%22%2C%22type%22%3A%22story%22%2C%22listType%22%3A%22expanded%22%7D";
 
-GM_addStyle("td { padding: 2px !important; font-size: 11px !important;  white-space:nowrap !important;} ");
+GM_addStyle("td { padding: 2px !important; font-size: 11px !important;  white-space:nowrap !important;} a {color:blue !important;} a:visited {color: purple !important;}");
 
 var newScript = document.createElement("script");
 
@@ -149,19 +149,19 @@ function makeTable(stories, id, display)
 
     var tableBody = "<div id=\"" + id + "\" style=\"display:" + display + ";\">" +
         "<table" + tableStyle + "><tr>" +
-        "<td align=center style=\"padding: 2px;\"><b><a href=\"#\" style=\"color:blue;\" onClick='sortByTitle()'>Title</a></b></td>" +
-        "<td></td>" +
-        "<td align=center style=\"padding: 2px;\"><b><a href=\"#\" style=\"color:blue;\" onClick='sortByDate()'>Date</a></b></td>" +
-        "<td style=\"padding: 2px;\"><b><a href=\"#\" style=\"color:blue;\" onClick='sortByCategory()'>Category</a></b></td>" +
+        "<th align=center><b><a href=\"#\" onClick='sortByTitle()'>Title</a></b></th>" +
+        "<th></th>" +
+        "<th align=center><b><a href=\"#\" onClick='sortByDate()'>Date</a></b></th>" +
+        "<th><b><a href=\"#\" onClick='sortByCategory()'>Category</a></b></th>" +
         "</tr>";
 
     for (var i = 0; i < stories.length; i++) {
         var story = stories[i];
         tableBody += "<tr>" +
-            "<td><a style=\"color:blue;\" href=\"" + story.url + "\">" + story.title + "</a>" + storyRating(story) + "</td>" +
+            "<td><a href=\"" + story.url + "\">" + story.title + "</a>" + storyRating(story) + "</td>" +
             "<td>" + story.description + "</td>" +
             "<td align=center>" + story.date + "</td>" +
-            "<td><a target=\"_self\" style=\"color:blue;\" href=\"https://www.literotica.com/c/" + story.category+ "\">" + story.category + "</a></td>" +
+            "<td><a target=\"_self\" href=\"https://www.literotica.com/c/" + story.category+ "\">" + story.category + "</a></td>" +
             "</tr>";
     }
 
@@ -195,6 +195,8 @@ function fixThePage() {
     var jsonObj = JSON.parse(jsonText);
 
     var storyObj = jsonObj.data;
+
+    debugger;
 
     if (storyObj.length < 1) {
         return;
