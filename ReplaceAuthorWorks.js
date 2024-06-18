@@ -14,7 +14,6 @@
 // @namespace     http://none.com/
 // @description   Replace author works page
 // @match       https://www.literotica.com/authors/*/works/stories
-// @run-at       document-end
 // @version 0.01
 // ==/UserScript==
 
@@ -43,8 +42,6 @@ if (pos < 0)
 // grab the author name
 author = author.substring(0, pos);
 
-// the json parameters passed to the API look like this when encoded:
-// %7B%22page%22%3A1%2C%22pageSize%22%3A5000%2C%22sort%22%3A%22title%22%2C%22type%22%3A%22story%22%2C%22listType%22%3A%22expanded%22%7D
 // this is what it looks like decoded.  I'm telling it to grab 5000 stories at a time.
 // {"page":1,"pageSize":5000,"sort":"title","type":"story","listType":"expanded"}
 
@@ -144,17 +141,14 @@ function makeTable(stories, id, display)
         "document.getElementById(\"stories_by_category\").style.display = \"block\";" +
         "'>Category</a></b></td>" +
         "</tr>";
-    //        "<table" + tableStyle + "><tr><td align=center style=\"padding: 2px;\"><b>Title</b></td><td align=center style=\"padding: 2px;\"><b>Date</b></td><td style=\"padding: 2px;\"><b>Category</b></td></tr>";
 
-    var cellStyle = " style=\"padding: 2px; font-size: 11px;\"";
+    var cellStyle = " style=\"padding: 2px; font-size: 11px; white-space:nowrap;\"";
 
     for (var i = 0; i < stories.length; i++) {
         var story = stories[i];
         tableBody += "<tr>" +
             "<td" + cellStyle + "><a style=\"color:blue;\" href=\"" + story.url + "\">" + story.title + "</a>" + storyRating(story) + "</td>" +
             "<td" + cellStyle + ">" + story.description + "</td>" +
-            //                     "<td" + cellStyle + "><a style=\"color:blue;\" href=\"" + story.url + "\">" + story.title + "</a><br />" +
-            //                     "&nbsp;&ndash; " + story.description + "</td>" +
             "<td align=center" + cellStyle + ">" + story.date + "</td>" +
             "<td" + cellStyle + "><a style=\"color:blue;\" href=\"https://www.literotica.com/c/" + story.category+ "\">" + story.category + "</a></td>" +
             "</tr>";
@@ -190,6 +184,12 @@ function fixThePage() {
     var jsonObj = JSON.parse(jsonText);
 
     var storyObj = jsonObj.data;
+
+    if (storyObj.length < 1) {
+        return;
+    }
+
+    var storyAuthor = storyObj[0].author.username;
 
     // create array that we will use
     const storiesByTitle = [];
@@ -243,7 +243,7 @@ function fixThePage() {
 
     // Make the page body using the story arrays
 
-    var pageBody = "<h2 align=\"center\">Stories by " + author + "</h2><br/>" +
+    var pageBody = "<h2 align=\"center\">Stories by " + storyAuthor + "</h2><br/>" +
         makeTable(storiesByTitle, "stories_by_title", "block") +
         makeTable(storiesByDate, "stories_by_date", "none") +
         makeTable(storiesByCategory, "stories_by_category", "none");
