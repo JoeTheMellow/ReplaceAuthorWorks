@@ -45,10 +45,13 @@ if (pos < 0)
 author = author.substring(0, pos);
 
 // this is what it looks like decoded.  I'm telling it to grab 5000 stories at a time.
-// {"page":1,"pageSize":5000,"sort":"title","type":"story","listType":"expanded"}
+// {"page":1,"pageSize":5000,"type":"story","listType":"expanded"}
 
 // make the url to get the json containing the author's stories
-var jsonUrl = "https://literotica.com/api/3/users/" + author + "/series_and_works?params=%7B%22page%22%3A1%2C%22pageSize%22%3A5000%2C%22sort%22%3A%22title%22%2C%22type%22%3A%22story%22%2C%22listType%22%3A%22expanded%22%7D";
+// https://literotica.com/api/3/users/BlackJackSteele/           series_and_works?params={%22page%22%3A1%2C%22pageSize%22%3A5000%2C%22type%22%3A%22story%22%2C%22listType%22%3A%22expanded%22}
+var jsonUrl = "https://literotica.com/api/3/users/" + author + "/series_and_works?params={%22page%22%3A1%2C%22pageSize%22%3A5000%2C%22type%22%3A%22story%22%2C%22listType%22%3A%22expanded%22}";
+var poemUrl = "https://literotica.com/api/3/users/" + author + "/series_and_works?params={%22page%22%3A1%2C%22pageSize%22%3A5000%2C%22type%22%3A%22poem%22%2C%22listType%22%3A%22expanded%22}";
+
 
 GM_addStyle("th { padding: 2px !important; font-size: 14px !important;  white-space:nowrap !important; border: 1px solid black !important; text-align: center !important;} " +
             "td { padding: 2px !important; font-size: 11px !important;  white-space:nowrap !important; border: 1px solid black !important; padding-right: 6px !important;} " +
@@ -108,27 +111,19 @@ newScript.innerText =
 "    tableBody += \"</table>\";" +
 "    return tableBody;" +
 "}" +
-
 "function titleCompare(a, b)" +
 "{" +
-"    if (sortOrder == 1) {" +
-"      return a.sort_title.localeCompare(b.sort_title);" +
-"	}" +
-"	return b.sort_title.localeCompare(a.sort_title);" +
+"return sortOrder * a.sort_title.localeCompare(b.sort_title);" +
 "}" +
 "function categoryCompare(a, b)" +
 "{" +
-"    if (sortOrder == 1) {" +
-"      return a.category.localeCompare(b.category);" +
-"	}" +
-"    return b.category.localeCompare(a.category);" +
+"var result = sortOrder * a.category.localeCompare(b.category);" +
+"if (result != 0) return result;" +
+"return titleCompare(a,b);" +
 "}" +
 "function dateCompare(b, a)" +
 "{" +
-"    if (sortOrder == 1) {" +
-"      return a.date.localeCompare(b.date);" +
-"	}" +
-"    return b.date.localeCompare(a.date);" +
+"return sortOrder * a.date.localeCompare(b.date);" +
 "}" +
 "function storyRating(story)" +
 "{" +
@@ -157,13 +152,16 @@ fixThePage();
 function Get(url){
     var Httpreq = new XMLHttpRequest(); // a new request
     Httpreq.open("GET",url,false);
+    Httpreq.setRequestHeader("Cache-Control", "no-cache, no-store, max-age=0");
+    Httpreq.setRequestHeader("Expires", "Tue, 01 Jan 1980 1:00:00 GMT");
+    Httpreq.setRequestHeader("Pragma", "no-cache");
     Httpreq.send(null);
     return Httpreq.responseText;
 }
 
 function mangleTitle(title)
 {
-    var result = title.toLowerCase().trim();
+    var result = title.toString().toLowerCase().trim();
 
     if (result.startsWith("the ")) {
         result = result.substring(4);
@@ -252,7 +250,7 @@ function fixThePage() {
         }
     }
 
-    // We have stories by title.  Sort them to get by date and category
+    // Sort stories by title
 
     storyData.sort(function(a, b){return a.sort_title.localeCompare(b.sort_title)});
 
