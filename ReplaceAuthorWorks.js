@@ -14,7 +14,7 @@
 // @namespace     http://none.com/
 // @description   Replace author works page
 // @match       https://www.literotica.com/authors/*/works/stories
-// @version 0.01
+// @version 0.02
 // @grant GM_addStyle
 // @run-at document-end
 // ==/UserScript==
@@ -88,7 +88,7 @@ function Get(url){
 
 function mangleTitle(title)
 {
-    var result = title.toLowerCase();
+    var result = title.toLowerCase().trim();
 
     if (result.startsWith("the ")) {
         result = result.substring(4);
@@ -99,12 +99,7 @@ function mangleTitle(title)
     else if (result.startsWith("an ")) {
         result = result.substring(3);
     }
-    else if (result.startsWith("'")) {
-        result = result.substring(1);
-    }
-    else if (result.startsWith("\"")) {
-        result = result.substring(1);
-    }
+    result = result.replace(/[^ A-Za-z0-9]/g, '');
 
     return result;
 
@@ -203,7 +198,7 @@ function fixThePage() {
     }
 
     // create array that we will use
-    const storiesByTitle = [];
+    const storyData = [];
 
     // function to pad a number with zeros
     const zeroPad = (num, places) => String(num).padStart(places, '0');
@@ -215,7 +210,7 @@ function fixThePage() {
 
         if (st.parts == null) {
             // single-chapter
-            storiesByTitle.push({title:st.title,
+            storyData.push({title:st.title,
                                  sort_title:mangleTitle(st.title),
                                  date:new Date(st.date_approve).toISOString().slice(0, 10),
                                  url:"https://www.literotica.com/s/"+st.url,
@@ -230,7 +225,7 @@ function fixThePage() {
             // multi-chapter.  add each individual chapter.
             for (var j = 0; j < st.parts.length; j++) {
                 var part = st.parts[j];
-                storiesByTitle.push({title:st.title + " " + zeroPad(j+1,2) + " - " + part.title,
+                storyData.push({title:st.title + " " + zeroPad(j+1,2) + " - " + part.title,
                                      sort_title:mangleTitle(st.title + " " + zeroPad(j+1,2) + " - " + part.title),
                                      date:new Date(part.date_approve).toISOString().slice(0, 10),
                                      url:"https://www.literotica.com/s/"+part.url,
@@ -246,18 +241,19 @@ function fixThePage() {
 
     // We have stories by title.  Sort them to get by date and category
 
-    storiesByTitle.sort(titleCompare);
+    storyData.sort(titleCompare);
 
-    const storiesByDate = storiesByTitle.toSorted(dateCompare);
+    const storiesByDate = storyData.toSorted(dateCompare);
 
-    const storiesByCategory = storiesByTitle.toSorted(categoryCompare);
+    const storiesByCategory = storyData.toSorted(categoryCompare);
 
     // Make the page body using the story arrays
 
     var pageBody = "<h2 align=\"center\">Stories by " + decodeURIComponent(author) + "</h2><br/>" +
-        makeTable(storiesByTitle, "stories_by_title", "block") +
+        makeTable(storyData, "stories_by_title", "block") +
         makeTable(storiesByDate, "stories_by_date", "none") +
-        makeTable(storiesByCategory, "stories_by_category", "none");
+        makeTable(storiesByCategory, "stories_by_category", "none") +
+                 "<div id=\"storyData\" style=\"display:none;\">" + JSON.stringify(storyData) + "</div>";
 
     page.innerHTML = pageBody;
 }
