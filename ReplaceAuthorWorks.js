@@ -57,21 +57,94 @@ GM_addStyle("th { padding: 2px !important; font-size: 14px !important;  white-sp
 var newScript = document.createElement("script");
 
 newScript.innerText =
-        "function sortByTitle() {" +
-        "document.getElementById(\"stories_by_title\").style.display = \"block\"; " +
-        "document.getElementById(\"stories_by_date\").style.display = \"none\"; " +
-        "document.getElementById(\"stories_by_category\").style.display = \"none\";" +
-        "}" +
-        "function sortByDate() {" +
-        "document.getElementById(\"stories_by_title\").style.display = \"none\"; " +
-        "document.getElementById(\"stories_by_date\").style.display = \"block\"; " +
-        "document.getElementById(\"stories_by_category\").style.display = \"none\";" +
-        "}" +
-        "function sortByCategory() {" +
-        "document.getElementById(\"stories_by_title\").style.display = \"none\"; " +
-        "document.getElementById(\"stories_by_date\").style.display = \"none\"; " +
-        "document.getElementById(\"stories_by_category\").style.display = \"block\";" +
-        "}";
+"var sortOrder = 1; " +
+"var sortColumn = \"title\"; " +
+"function sortTable(col) " +
+"{" +
+  "if (sortColumn == col) {" +
+  "  sortOrder = -sortOrder;" +
+  "}" +
+  "else {" +
+  "  sortColumn = col;" +
+  "  sortOrder = 1;" +
+  "}" +
+
+  "var sortCompare;" +
+
+  "if (col == \"title\") {" +
+"  sortCompare = titleCompare;" +
+"}" +
+"else if (col == \"date\") {" +
+"  sortCompare = dateCompare;" +
+"}" +
+"else if (col == \"category\") {" +
+"  sortCompare = categoryCompare;" +
+"}" +
+
+"var stories = JSON.parse(document.getElementById(\"storyData\").innerHTML);" +
+
+"stories.sort(sortCompare);" +
+"document.getElementById(\"story_table\").innerHTML = makeTable(stories);" +
+"}" +
+
+"function makeTable(stories)" +
+"{" +
+"    var tableBody = " +
+"        \"<table><tr>\" +" +
+"        \"<th><b><a href=\\\"#\\\" onClick=\\\"sortTable('title')\\\">Title</a></b></th>\" +" +
+"        \"<th></th>\" +" +
+"        \"<th><b><a href=\\\"#\\\" onClick=\\\"sortTable('date')\\\">Date</a></b></th>\" +" +
+"        \"<th><b><a href=\\\"#\\\" onClick=\\\"sortTable('category')\\\">Category</a></b></th>\" +" +
+"        \"</tr>\";" +
+"    for (var i = 0; i < stories.length; i++) {" +
+"        var story = stories[i];" +
+"        tableBody += \"<tr>\" +" +
+"            \"<td><a href=\\\"\" + story.url + \"\\\">\" + story.title + \"</a>\" + storyRating(story) + \"</td>\" +" +
+"            \"<td>\" + story.description + \"</td>\" +" +
+"            \"<td align=center>\" + story.date + \"</td>\" +" +
+"            \"<td><a target=\\\"_self\\\" href=\\\"https://www.literotica.com/c/\" + story.category+ \"\\\">\" + story.category + \"</a></td>\" +" +
+"            \"</tr>\";" +
+"    }" +
+"    tableBody += \"</table>\";" +
+"    return tableBody;" +
+"}" +
+
+"function titleCompare(a, b)" +
+"{" +
+"    if (sortOrder == 1) {" +
+"      return a.sort_title.localeCompare(b.sort_title);" +
+"	}" +
+"	return b.sort_title.localeCompare(a.sort_title);" +
+"}" +
+"function categoryCompare(a, b)" +
+"{" +
+"    if (sortOrder == 1) {" +
+"      return a.category.localeCompare(b.category);" +
+"	}" +
+"    return b.category.localeCompare(a.category);" +
+"}" +
+"function dateCompare(b, a)" +
+"{" +
+"    if (sortOrder == 1) {" +
+"      return a.date.localeCompare(b.date);" +
+"	}" +
+"    return b.date.localeCompare(a.date);" +
+"}" +
+"function storyRating(story)" +
+"{" +
+"    var result = \"\";" +
+"    if (story.rating != null) {" +
+"        result += \"&nbsp;(\" + story.rating + \")\";" +
+"    }" +
+"    if (story.is_new) {" +
+"        result += \"&nbsp;<img src='/imagesv2/icons08/new08s.gif' style='vertical-align:middle; display:inline;'>\";" +
+"    }" +
+"    if (story.is_hot) {" +
+"        result += \"&nbsp;<img src='/imagesv2/icons08/hot08s.gif' style='vertical-align:middle; display:inline;'>\";" +
+"    }" +
+"    return result;" +
+"}";
+
 
 document.head.appendChild(newScript);
 
@@ -104,68 +177,8 @@ function mangleTitle(title)
     result = result.replace(/[^ A-Za-z0-9]/g, '');
 
     return result;
-
 }
 
-function titleCompare(a, b)
-{
-    return a.sort_title.localeCompare(b.sort_title);
-}
-
-function categoryCompare(a, b)
-{
-    return a.category.localeCompare(b.category);
-}
-
-function dateCompare(b, a)
-{
-    // sorts in reverse order to put newest at top
-    return a.date.localeCompare(b.date);
-}
-
-function storyRating(story)
-{
-    var result = "";
-    if (story.rating != null) {
-        result += "&nbsp;(" + story.rating + ")";
-    }
-    if (story.is_new) {
-        result += "&nbsp;<img src=\"/imagesv2/icons08/new08s.gif\" style=\"vertical-align:middle; display:inline;\">";
-    }
-    if (story.is_hot) {
-        result += "&nbsp;<img src=\"/imagesv2/icons08/hot08s.gif\" style=\"vertical-align:middle; display:inline;\">";
-    }
-    return result;
-}
-
-function makeTable(stories, id, display)
-{
-    // now we have the story array.  Add to a table.
-
-    var tableStyle = ""; //" style=\"width:100%;\"";
-
-    var tableBody = "<div id=\"" + id + "\" style=\"display:" + display + ";\">" +
-        "<table" + tableStyle + "><tr>" +
-        "<th><b><a href=\"#\" onClick='sortByTitle()'>Title</a></b></th>" +
-        "<th></th>" +
-        "<th><b><a href=\"#\" onClick='sortByDate()'>Date</a></b></th>" +
-        "<th><b><a href=\"#\" onClick='sortByCategory()'>Category</a></b></th>" +
-        "</tr>";
-
-    for (var i = 0; i < stories.length; i++) {
-        var story = stories[i];
-        tableBody += "<tr>" +
-            "<td><a href=\"" + story.url + "\">" + story.title + "</a>" + storyRating(story) + "</td>" +
-            "<td>" + story.description + "</td>" +
-            "<td align=center>" + story.date + "</td>" +
-            "<td><a target=\"_self\" href=\"https://www.literotica.com/c/" + story.category+ "\">" + story.category + "</a></td>" +
-            "</tr>";
-    }
-
-    tableBody += "</table></div>";
-
-    return tableBody;
-}
 
 
 // this actually reformats the page
@@ -192,8 +205,6 @@ function fixThePage() {
     var jsonObj = JSON.parse(jsonText);
 
     var storyObj = jsonObj.data;
-
-    debugger;
 
     if (storyObj.length < 1) {
         return;
@@ -243,19 +254,15 @@ function fixThePage() {
 
     // We have stories by title.  Sort them to get by date and category
 
-    storyData.sort(titleCompare);
+    storyData.sort(function(a, b){return a.sort_title.localeCompare(b.sort_title)});
 
-    const storiesByDate = storyData.toSorted(dateCompare);
-
-    const storiesByCategory = storyData.toSorted(categoryCompare);
-
-    // Make the page body using the story arrays
+    // Make the page body using the story array
 
     var pageBody = "<h2 align=\"center\">Stories by " + decodeURIComponent(author) + "</h2><br/>" +
-        makeTable(storyData, "stories_by_title", "block") +
-        makeTable(storiesByDate, "stories_by_date", "none") +
-        makeTable(storiesByCategory, "stories_by_category", "none") +
-                 "<div id=\"storyData\" style=\"display:none;\">" + JSON.stringify(storyData) + "</div>";
+        "<div id=\"story_table\">" +
+        makeTable(storyData) +
+        "</div>" +
+        "<div id=\"storyData\" style=\"display:none;\">" + JSON.stringify(storyData) + "</div>";
 
     page.innerHTML = pageBody;
 }
