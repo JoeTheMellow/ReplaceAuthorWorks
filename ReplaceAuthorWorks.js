@@ -14,6 +14,9 @@
 // @namespace     http://none.com/
 // @description   Replace author works page
 // @match       https://www.literotica.com/authors/*/works/stories
+// @match       https://www.literotica.com/authors/*/works/poetry
+// @match       https://www.literotica.com/authors/*/works/artworks
+// @match       https://www.literotica.com/authors/*/works/audio
 // @version 0.02
 // @grant GM_addStyle
 // @run-at document-end
@@ -44,16 +47,6 @@ if (pos < 0)
 // grab the author name
 author = author.substring(0, pos);
 
-// this is what it looks like decoded.  I'm telling it to grab 5000 stories at a time.
-// {"page":1,"pageSize":5000,"type":"story","listType":"expanded"}
-
-// make the url to get the json containing the author's stories
-// https://literotica.com/api/3/users/BlackJackSteele/           series_and_works?params={%22page%22%3A1%2C%22pageSize%22%3A5000%2C%22type%22%3A%22story%22%2C%22listType%22%3A%22expanded%22}
-var storyUrl = "https://literotica.com/api/3/users/" + author + "/series_and_works?params={%22page%22%3A1%2C%22pageSize%22%3A5000%2C%22type%22%3A%22story%22%2C%22listType%22%3A%22expanded%22}";
-var poemUrl = "https://literotica.com/api/3/users/" + author + "/series_and_works?params={%22page%22%3A1%2C%22pageSize%22%3A5000%2C%22type%22%3A%22poem%22%2C%22listType%22%3A%22expanded%22}";
-var artUrl =  "https://literotica.com/api/3/users/" + author + "/series_and_works?params={%22page%22%3A1%2C%22pageSize%22%3A5000%2C%22type%22%3A%22illustra%22%2C%22listType%22%3A%22expanded%22}";
-var audioUrl =  "https://literotica.com/api/3/users/" + author + "/series_and_works?params={%22page%22%3A1%2C%22pageSize%22%3A5000%2C%22type%22%3A%22audio%22%2C%22listType%22%3A%22expanded%22}";
-
 GM_addStyle("th { padding: 2px !important; font-size: 14px !important;  white-space:nowrap !important; border: 1px solid black !important; text-align: center !important;} " +
             "td { padding: 2px !important; font-size: 11px !important;  white-space:nowrap !important; border: 1px solid black !important; padding-right: 6px !important;} " +
             "a {color:blue !important;} a:visited {color: purple !important;}");
@@ -63,7 +56,7 @@ var newScript = document.createElement("script");
 newScript.innerText =
 "var sortOrder = 1; " +
 "var sortColumn = \"title\"; " +
-"function sortTable(col) " +
+"function sortTable(col, category) " +
 "{" +
   "if (sortColumn == col) {" +
   "  sortOrder = -sortOrder;" +
@@ -85,20 +78,20 @@ newScript.innerText =
 "  sortCompare = categoryCompare;" +
 "}" +
 
-"var stories = JSON.parse(document.getElementById(\"storyData\").innerHTML);" +
+"var stories = JSON.parse(document.getElementById(category + \"Data\").innerHTML);" +
 
 "stories.sort(sortCompare);" +
-"document.getElementById(\"story_table\").innerHTML = makeTable(stories);" +
+"document.getElementById(category + \"_table\").innerHTML = makeTable(stories, category);" +
 "}" +
 
-"function makeTable(stories)" +
+"function makeTable(stories, category)" +
 "{" +
 "    var tableBody = " +
 "        \"<table><tr>\" +" +
-"        \"<th><b><a href=\\\"#\\\" onClick=\\\"sortTable('title')\\\">Title</a></b></th>\" +" +
+"        \"<th><b><a href=\\\"#\\\" onClick=\\\"sortTable('title',category)\\\">Title</a></b></th>\" +" +
 "        \"<th></th>\" +" +
-"        \"<th><b><a href=\\\"#\\\" onClick=\\\"sortTable('date')\\\">Date</a></b></th>\" +" +
-"        \"<th><b><a href=\\\"#\\\" onClick=\\\"sortTable('category')\\\">Category</a></b></th>\" +" +
+"        \"<th><b><a href=\\\"#\\\" onClick=\\\"sortTable('date',category)\\\">Date</a></b></th>\" +" +
+"        \"<th><b><a href=\\\"#\\\" onClick=\\\"sortTable('category',category)\\\">Category</a></b></th>\" +" +
 "        \"</tr>\";" +
 "    for (var i = 0; i < stories.length; i++) {" +
 "        var story = stories[i];" +
@@ -152,21 +145,6 @@ fixThePage();
 // return the response from the url
 function Get(author, category)
 {
-    var catPart;
-	switch (category) {
-	  case "story" :
-	    catPart = "s";
-		break;
-	  case "poem" :
-	    catPart = "p";
-		break;
-	  case "illustra" :
-	    catPart = "i";
-		break;
-	  case "audio" :
-	    catPart = "s";
-		break;
-	}
     var url = "https://literotica.com/api/3/users/" + author + "/series_and_works?params={%22page%22%3A1%2C%22pageSize%22%3A5000%2C%22type%22%3A%22" + category + "%22%2C%22listType%22%3A%22expanded%22}";
     var Httpreq = new XMLHttpRequest(); // a new request
     Httpreq.open("GET",url,false);
@@ -193,13 +171,16 @@ function Get(author, category)
     for (var i = 0; i < storyObj.length; i++)
     {
         var st = storyObj[i];
+		var urlPart;
 
         if (st.parts == null) {
             // single-chapter
+			urlPart = st.category_info.type.slice(0,1);
+                debugger;
             storyData.push({title:st.title,
                                  sort_title:mangleTitle(st.title),
                                  date:new Date(st.date_approve).toISOString().slice(0, 10),
-                                 url:"https://www.literotica.com/" + catPart + "/"+st.url,
+                                 url:"https://www.literotica.com/" + urlPart + "/"+st.url,
                                  description:st.description,
                                  category:st.category_info.pageUrl,
                                  rating:st.rate_all,
@@ -211,10 +192,12 @@ function Get(author, category)
             // multi-chapter.  add each individual chapter.
             for (var j = 0; j < st.parts.length; j++) {
                 var part = st.parts[j];
+ 			    urlPart = part.category_info.type.slice(0,1);
+                debugger;
                 storyData.push({title:st.title + " " + zeroPad(j+1,2) + " - " + part.title,
                                      sort_title:mangleTitle(st.title + " " + zeroPad(j+1,2) + " - " + part.title),
                                      date:new Date(part.date_approve).toISOString().slice(0, 10),
-                                     url:"https://www.literotica.com/" + catPart + "/"+part.url,
+                                     url:"https://www.literotica.com/" + urlPart + "/"+part.url,
                                      description:part.description,
                                      category:part.category_info.pageUrl,
                                      rating:part.rate_all,
@@ -245,7 +228,28 @@ function mangleTitle(title)
     return result;
 }
 
+function makeSection(author, heading, category)
+{
+    // create array that we will use
+    const storyData = Get(author, category);
 
+	if (storyData.length == 0) {
+	  return "";
+	}
+
+    // Sort stories by title
+    storyData.sort(function(a, b){return a.sort_title.localeCompare(b.sort_title)});
+
+    // Make the page body using the story array
+
+    var pageBody = "<br/><h2 align=\"center\">" + heading + decodeURIComponent(author) + "</h2><br/>" +
+        "<div id=\"" + category + "_table\">" +
+        makeTable(storyData, category) +
+        "</div>" +
+        "<div id=\"" + category + "Data\" style=\"display:none;\">" + JSON.stringify(storyData) + "</div>";
+
+    return pageBody;
+}
 
 // this actually reformats the page
 function fixThePage() {
@@ -265,23 +269,19 @@ function fixThePage() {
 
     var page = pageList.snapshotItem(0);
 
-    // create array that we will use
-    const storyData = Get(author, "story");
-	
-	if (storyData.length == 0) {
-	  return;
-	}
+    var pageBody = "";
 
-    // Sort stories by title
-    storyData.sort(function(a, b){return a.sort_title.localeCompare(b.sort_title)});
+    // create story section
+    pageBody += makeSection(author, "Stories by ", "story");
 
-    // Make the page body using the story array
+    // create poem section
+    pageBody += makeSection(author, "Poems by ", "poem");
 
-    var pageBody = "<h2 align=\"center\">Stories by " + decodeURIComponent(author) + "</h2><br/>" +
-        "<div id=\"story_table\">" +
-        makeTable(storyData) +
-        "</div>" +
-        "<div id=\"storyData\" style=\"display:none;\">" + JSON.stringify(storyData) + "</div>";
+    // create art section
+    pageBody += makeSection(author, "Artworks by ", "illustra");
+
+    // create audio section
+    pageBody += makeSection(author, "Audios by ", "audio");
 
     page.innerHTML = pageBody;
 }
