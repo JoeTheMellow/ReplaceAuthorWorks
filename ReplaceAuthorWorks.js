@@ -91,21 +91,6 @@ newScript.innerText =
     "document.getElementById(category + \"_table\").innerHTML = makeTable(stories, category);" +
   "}" +
 
-"function escapeEntity(item)" +
-"{" +
-  "var result = item.replace(/[<>&'\"]/g, function (c) {" +
-    "switch (c) {" +
-    "  case '<': return '&lt;';" +
-    "  case '>': return '&gt;';" +
-    "  case '&': return '&amp;';" +
-    "  case '\\'': return '&apos;';" +
-    "  case '\"': return '&quot;';" +
-    "}" +
-  "});" +
-//  "alert(item + ' - ' + result);" +
-  "return result;" +
-  "}" +
-
   "function makeTable(stories, category)" +
   "{" +
     "    var tableBody = " +
@@ -118,8 +103,8 @@ newScript.innerText =
     "    for (var i = 0; i < stories.length; i++) {" +
     "        var story = stories[i];" +
     "        tableBody += \"<tr>\" +" +
-    "            \"<td><a href=\\\"\" + story.url + \"\\\">\" + escapeEntity(story.title) + \"</a>\" + storyRating(story) + \"</td>\" +" +
-    "            \"<td>\" + escapeEntity(story.description) + \"</td>\" +" +
+    "            \"<td><a href=\\\"\" + story.url + \"\\\">\" + story.title + \"</a>\" + storyRating(story) + \"</td>\" +" +
+    "            \"<td>\" + story.description + \"</td>\" +" +
     "            \"<td align=center>\" + story.date + \"</td>\" +" +
     "            \"<td><a target=\\\"_self\\\" href=\\\"https://www.literotica.com/c/\" + story.category+ \"\\\">\" + story.category + \"</a></td>\" +" +
     "            \"</tr>\";" +
@@ -152,11 +137,9 @@ newScript.innerText =
     "    result += \"&nbsp;(\" + story.rating + \")\";" +
     "}" +
     "if (story.is_new) {" +
-    //"    result += \"&nbsp;<img src='/imagesv2/icons08/new08s.gif' style='vertical-align:middle; display:inline;'>\";" +
     "    result += \"&nbsp;<img src='data:image/gif;base64,R0lGODlhFAAJAJEAAP7xqi8pCPzcKwAAACH5BAAAAAAALAAAAAAUAAkAAAIghI6paOsf4olB1HSnzrfj7Vka4nFjJorUVEnPqzTwAhQAOw==' style='vertical-align:middle; display:inline;'>\";" +
     "}" +
     "if (story.is_hot) {" +
-    //"    result += \"&nbsp;<img src='/imagesv2/icons08/hot08s.gif' style='vertical-align:middle; display:inline;'>\";" +
     "    result += \"&nbsp;<img src='data:image/gif;base64,R0lGODlhCQAJAJEAAPaekP///+w0FgAAACH5BAAAAAAALAAAAAAJAAkAAAIRhI5iyRL4oIShxnOvmw0tBhQAOw==' style='vertical-align:middle; display:inline;'>\";" +
     "}" +
     "return result;" +
