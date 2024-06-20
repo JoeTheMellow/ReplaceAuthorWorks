@@ -28,8 +28,7 @@ var currentUrl = window.location.href;
 // look for "authors" in the url
 var pos = currentUrl.indexOf("authors/");
 
-if (pos < 0)
-{
+if (pos < 0) {
     return;
 }
 
@@ -39,108 +38,108 @@ var author = currentUrl.substring(pos);
 
 // find trailing /
 pos = author.indexOf("/");
-if (pos < 0)
-{
+if (pos < 0) {
     return;
 }
 
 // grab the author name
 author = author.substring(0, pos);
 
-GM_addStyle("th { padding: 2px !important; font-size: 14px !important;  white-space:nowrap !important; border: 1px solid black !important; text-align: center !important;} " +
-            "td { padding: 2px !important; font-size: 11px !important;  white-space:nowrap !important; border: 1px solid black !important; padding-right: 6px !important;} " +
-            "a {color:blue !important;} a:visited {color: purple !important;}");
+GM_addStyle("table {display: block; overflow-x: auto; white-space: nowrap !important;} " +
+    "th { padding: 2px !important; font-size: 14px !important; border: 1px solid black !important; text-align: center !important;} " +
+    "td { padding: 2px !important; font-size: 11px !important; border: 1px solid black !important; padding-right: 6px !important;} " +
+    "a {color:blue !important;} a:visited {color: purple !important;}");
 
 var newScript = document.createElement("script");
 
 newScript.innerText =
-"var sortOrder = 1; " +
-"const sortInfo = new Map([" +
-"['story', {order: 1, col: 'title'}]," +
-"['poem', {order: 1, col: 'title'}]," +
-"['illustra', {order: 1, col: 'title'}]," +
-"['audio', {order: 1, col: 'title'}]" +
-"]);" +
+    "var sortOrder = 1; " +
+    "const sortInfo = new Map([" +
+    "['story', {order: 1, col: 'title'}]," +
+    "['poem', {order: 1, col: 'title'}]," +
+    "['illustra', {order: 1, col: 'title'}]," +
+    "['audio', {order: 1, col: 'title'}]" +
+    "]);" +
 
-"function sortTable(col, category) " +
-"{" +
-  "sortOrder = sortInfo.get(category).order;"+
-  "if (sortInfo.get(category).col == col) {" +
-  "  sortOrder = -sortOrder;" +
-  "  sortInfo.set(category, {order: sortOrder, col: col});" +
-  "}" +
-  "else {" +
-  "  sortInfo.set(category, {order: 1, col: col});" +
-  "  sortOrder = 1;" +
-  "}" +
+    "function sortTable(col, category) " +
+    "{" +
+    "sortOrder = sortInfo.get(category).order;" +
+    "if (sortInfo.get(category).col == col) {" +
+    "  sortOrder = -sortOrder;" +
+    "  sortInfo.set(category, {order: sortOrder, col: col});" +
+    "}" +
+    "else {" +
+    "  sortInfo.set(category, {order: 1, col: col});" +
+    "  sortOrder = 1;" +
+    "}" +
 
-  "var sortCompare;" +
+    "var sortCompare;" +
 
-  "if (col == \"title\") {" +
-"  sortCompare = titleCompare;" +
-"}" +
-"else if (col == \"date\") {" +
-"  sortCompare = dateCompare;" +
-"}" +
-"else if (col == \"category\") {" +
-"  sortCompare = categoryCompare;" +
-"}" +
+    "if (col == \"title\") {" +
+    "  sortCompare = titleCompare;" +
+    "}" +
+    "else if (col == \"date\") {" +
+    "  sortCompare = dateCompare;" +
+    "}" +
+    "else if (col == \"category\") {" +
+    "  sortCompare = categoryCompare;" +
+    "}" +
 
-"var stories = JSON.parse(document.getElementById(category + \"Data\").innerHTML);" +
+    "var stories = JSON.parse(document.getElementById(category + \"Data\").innerHTML);" +
 
-"stories.sort(sortCompare);" +
-"document.getElementById(category + \"_table\").innerHTML = makeTable(stories, category);" +
-"}" +
+    "stories.sort(sortCompare);" +
+    "document.getElementById(category + \"_table\").innerHTML = makeTable(stories, category);" +
+    "}" +
 
-"function makeTable(stories, category)" +
-"{" +
-"    var tableBody = " +
-"        \"<table><tr>\" +" +
-"        \"<th><b><a href=\\\"#\\\" onClick=\\\"sortTable('title','\" + category + \"')\\\">Title</a></b></th>\" +" +
-"        \"<th></th>\" +" +
-"        \"<th><b><a href=\\\"#\\\" onClick=\\\"sortTable('date','\" + category + \"')\\\">Date</a></b></th>\" +" +
-"        \"<th><b><a href=\\\"#\\\" onClick=\\\"sortTable('category','\" + category + \"')\\\">Category</a></b></th>\" +" +
-"        \"</tr>\";" +
-"    for (var i = 0; i < stories.length; i++) {" +
-"        var story = stories[i];" +
-"        tableBody += \"<tr>\" +" +
-"            \"<td><a href=\\\"\" + story.url + \"\\\">\" + story.title + \"</a>\" + storyRating(story) + \"</td>\" +" +
-"            \"<td>\" + story.description + \"</td>\" +" +
-"            \"<td align=center>\" + story.date + \"</td>\" +" +
-"            \"<td><a target=\\\"_self\\\" href=\\\"https://www.literotica.com/c/\" + story.category+ \"\\\">\" + story.category + \"</a></td>\" +" +
-"            \"</tr>\";" +
-"    }" +
-"    tableBody += \"</table>\";" +
-"    return tableBody;" +
-"}" +
-"function titleCompare(a, b)" +
-"{" +
-"return sortOrder * a.sort_title.localeCompare(b.sort_title);" +
-"}" +
-"function categoryCompare(a, b)" +
-"{" +
-"var result = sortOrder * a.category.localeCompare(b.category);" +
-"if (result != 0) return result;" +
-"return titleCompare(a,b);" +
-"}" +
-"function dateCompare(b, a)" +
-"{" +
-"return sortOrder * a.date.localeCompare(b.date);" +
-"}" +
-"function storyRating(story)" +
-"{" +
-"    var result = \"\";" +
-"    if (story.rating != null) {" +
-"        result += \"&nbsp;(\" + story.rating + \")\";" +
-"    }" +
-"    if (story.is_new) {" +
-"        result += \"&nbsp;<img src='/imagesv2/icons08/new08s.gif' style='vertical-align:middle; display:inline;'>\";" +
-"    }" +
-"    if (story.is_hot) {" +
-"        result += \"&nbsp;<img src='/imagesv2/icons08/hot08s.gif' style='vertical-align:middle; display:inline;'>\";" +
-"    }" +
-"    return result;" +
-"}";
+    "function makeTable(stories, category)" +
+    "{" +
+    "    var tableBody = " +
+    "        \"<table><tr>\" +" +
+    "        \"<th><b><a href=\\\"#\\\" onClick=\\\"sortTable('title','\" + category + \"')\\\">Title</a></b></th>\" +" +
+    "        \"<th></th>\" +" +
+    "        \"<th><b><a href=\\\"#\\\" onClick=\\\"sortTable('date','\" + category + \"')\\\">Date</a></b></th>\" +" +
+    "        \"<th><b><a href=\\\"#\\\" onClick=\\\"sortTable('category','\" + category + \"')\\\">Category</a></b></th>\" +" +
+    "        \"</tr>\";" +
+    "    for (var i = 0; i < stories.length; i++) {" +
+    "        var story = stories[i];" +
+    "        tableBody += \"<tr>\" +" +
+    "            \"<td><a href=\\\"\" + story.url + \"\\\">\" + story.title + \"</a>\" + storyRating(story) + \"</td>\" +" +
+    "            \"<td>\" + story.description + \"</td>\" +" +
+    "            \"<td align=center>\" + story.date + \"</td>\" +" +
+    "            \"<td><a target=\\\"_self\\\" href=\\\"https://www.literotica.com/c/\" + story.category+ \"\\\">\" + story.category + \"</a></td>\" +" +
+    "            \"</tr>\";" +
+    "    }" +
+    "    tableBody += \"</table>\";" +
+    "    return tableBody;" +
+    "}" +
+    "function titleCompare(a, b)" +
+    "{" +
+    "return sortOrder * a.sort_title.localeCompare(b.sort_title);" +
+    "}" +
+    "function categoryCompare(a, b)" +
+    "{" +
+    "var result = sortOrder * a.category.localeCompare(b.category);" +
+    "if (result != 0) return result;" +
+    "return titleCompare(a,b);" +
+    "}" +
+    "function dateCompare(b, a)" +
+    "{" +
+    "return sortOrder * a.date.localeCompare(b.date);" +
+    "}" +
+    "function storyRating(story)" +
+    "{" +
+    "    var result = \"\";" +
+    "    if (story.rating != null) {" +
+    "        result += \"&nbsp;(\" + story.rating + \")\";" +
+    "    }" +
+    "    if (story.is_new) {" +
+    "        result += \"&nbsp;<img src='/imagesv2/icons08/new08s.gif' style='vertical-align:middle; display:inline;'>\";" +
+    "    }" +
+    "    if (story.is_hot) {" +
+    "        result += \"&nbsp;<img src='/imagesv2/icons08/hot08s.gif' style='vertical-align:middle; display:inline;'>\";" +
+    "    }" +
+    "    return result;" +
+    "}";
 
 
 document.head.appendChild(newScript);
@@ -150,12 +149,16 @@ fixThePage();
 
 // ------------------------
 
+// function to pad a number with zeros
+function ZeroPad(num, places) {
+    return String(num).padStart(places, '0');
+}
+
 // return the response from the url
-function Get(author, category)
-{
+function Get(author, category) {
     var url = "https://literotica.com/api/3/users/" + author + "/series_and_works?params={%22page%22%3A1%2C%22pageSize%22%3A5000%2C%22type%22%3A%22" + category + "%22%2C%22listType%22%3A%22expanded%22}";
     var Httpreq = new XMLHttpRequest(); // a new request
-    Httpreq.open("GET",url,false);
+    Httpreq.open("GET", url, false);
     Httpreq.setRequestHeader("Cache-Control", "no-cache, no-store, max-age=0");
     Httpreq.setRequestHeader("Expires", "Tue, 01 Jan 1980 1:00:00 GMT");
     Httpreq.setRequestHeader("Pragma", "no-cache");
@@ -172,52 +175,60 @@ function Get(author, category)
         return storyData;
     }
 
-    // function to pad a number with zeros
-    const zeroPad = (num, places) => String(num).padStart(places, '0');
-
     // iterate through json story info and add to story array
-    for (var i = 0; i < storyObj.length; i++)
-    {
+    for (var i = 0; i < storyObj.length; i++) {
         var st = storyObj[i];
-		var urlPart;
+        var urlPart;
 
         if (st.parts == null) {
             // single-chapter
-			urlPart = st.category_info.type.slice(0,1);
-            storyData.push({title:st.title,
-                                 sort_title:mangleTitle(st.title),
-                                 date:new Date(st.date_approve).toISOString().slice(0, 10),
-                                 url:"https://www.literotica.com/" + urlPart + "/"+st.url,
-                                 description:st.description,
-                                 category:st.category_info.pageUrl,
-                                 rating:st.rate_all,
-                                 is_hot:st.is_hot,
-                                 is_new:st.is_new
-                                });
+            urlPart = st.category_info.type.slice(0, 1);
+            storyData.push({
+                title: st.title,
+                sort_title: mangleTitle(st.title),
+                date: new Date(st.date_approve).toISOString().slice(0, 10),
+                url: "https://www.literotica.com/" + urlPart + "/" + st.url,
+                description: st.description,
+                category: st.category_info.pageUrl,
+                rating: st.rate_all,
+                is_hot: st.is_hot,
+                is_new: st.is_new
+            });
         }
         else {
             // multi-chapter.  add each individual chapter.
+            var places;
+            if (st.parts.length < 100) {
+                places = 2;
+            }
+            else if (st.parts.length < 1000) {
+                places = 3;
+            }
+            else {
+                places = 4;
+            }
+
             for (var j = 0; j < st.parts.length; j++) {
                 var part = st.parts[j];
- 			    urlPart = part.category_info.type.slice(0,1);
-                storyData.push({title:st.title + " " + zeroPad(j+1,2) + " - " + part.title,
-                                     sort_title:mangleTitle(st.title + " " + zeroPad(j+1,2) + " - " + part.title),
-                                     date:new Date(part.date_approve).toISOString().slice(0, 10),
-                                     url:"https://www.literotica.com/" + urlPart + "/"+part.url,
-                                     description:part.description,
-                                     category:part.category_info.pageUrl,
-                                     rating:part.rate_all,
-                                     is_hot:part.is_hot,
-                                     is_new:part.is_new
-                                    });
+                urlPart = part.category_info.type.slice(0, 1);
+                storyData.push({
+                    title: st.title + " " + ZeroPad(j + 1, places) + " - " + part.title,
+                    sort_title: mangleTitle(st.title + " " + ZeroPad(j + 1, places) + " - " + part.title),
+                    date: new Date(part.date_approve).toISOString().slice(0, 10),
+                    url: "https://www.literotica.com/" + urlPart + "/" + part.url,
+                    description: part.description,
+                    category: part.category_info.pageUrl,
+                    rating: part.rate_all,
+                    is_hot: part.is_hot,
+                    is_new: part.is_new
+                });
             }
         }
     }
-	return storyData;
+    return storyData;
 }
 
-function mangleTitle(title)
-{
+function mangleTitle(title) {
     var result = title.toString().toLowerCase().trim();
 
     if (result.startsWith("the ")) {
@@ -234,17 +245,16 @@ function mangleTitle(title)
     return result;
 }
 
-function makeSection(author, heading, category)
-{
+function makeSection(author, heading, category) {
     // create array that we will use
     const storyData = Get(author, category);
 
-	if (storyData.length == 0) {
-	  return "";
-	}
+    if (storyData.length == 0) {
+        return "";
+    }
 
     // Sort stories by title
-    storyData.sort(function(a, b){return a.sort_title.localeCompare(b.sort_title)});
+    storyData.sort(function (a, b) { return a.sort_title.localeCompare(b.sort_title) });
 
     // Make the page body using the story array
 
