@@ -91,6 +91,21 @@ newScript.innerText =
     "document.getElementById(category + \"_table\").innerHTML = makeTable(stories, category);" +
   "}" +
 
+"function escapeEntity(item)" +
+"{" +
+  "var result = item.replace(/[<>&'\"]/g, function (c) {" +
+    "switch (c) {" +
+    "  case '<': return '&lt;';" +
+    "  case '>': return '&gt;';" +
+    "  case '&': return '&amp;';" +
+    "  case '\\'': return '&apos;';" +
+    "  case '\"': return '&quot;';" +
+    "}" +
+  "});" +
+//  "alert(item + ' - ' + result);" +
+  "return result;" +
+  "}" +
+
   "function makeTable(stories, category)" +
   "{" +
     "    var tableBody = " +
@@ -103,8 +118,8 @@ newScript.innerText =
     "    for (var i = 0; i < stories.length; i++) {" +
     "        var story = stories[i];" +
     "        tableBody += \"<tr>\" +" +
-    "            \"<td><a href=\\\"\" + story.url + \"\\\">\" + story.title + \"</a>\" + storyRating(story) + \"</td>\" +" +
-    "            \"<td>\" + story.description + \"</td>\" +" +
+    "            \"<td><a href=\\\"\" + story.url + \"\\\">\" + escapeEntity(story.title) + \"</a>\" + storyRating(story) + \"</td>\" +" +
+    "            \"<td>\" + escapeEntity(story.description) + \"</td>\" +" +
     "            \"<td align=center>\" + story.date + \"</td>\" +" +
     "            \"<td><a target=\\\"_self\\\" href=\\\"https://www.literotica.com/c/\" + story.category+ \"\\\">\" + story.category + \"</a></td>\" +" +
     "            \"</tr>\";" +
@@ -133,7 +148,7 @@ newScript.innerText =
   "function storyRating(story)" +
   "{" +
     "var result = \"\";" +
-    "if (story.rating != null && story.rating != 0) {" +
+    "if (story.rating != null) {" +
     "    result += \"&nbsp;(\" + story.rating + \")\";" +
     "}" +
     "if (story.is_new) {" +
@@ -152,6 +167,7 @@ document.head.appendChild(newScript);
 fixThePage();
 
 // ------------------------
+
 
 // return the response from the url
 function Get(author, category) {
@@ -181,6 +197,23 @@ function Get(author, category) {
             return rating;
         }
         return null;
+    }
+
+    var mangleTitle = (title) => {
+        var result = title.toString().toLowerCase().trim();
+
+        if (result.startsWith("the ")) {
+            result = result.substring(4);
+        }
+        else if (result.startsWith("a ")) {
+            result = result.substring(2);
+        }
+        else if (result.startsWith("an ")) {
+            result = result.substring(3);
+        }
+        result = result.replace(/[^ A-Za-z0-9]/g, '');
+
+        return result;
     }
 
     // iterate through json story info and add to story array
@@ -237,23 +270,6 @@ function Get(author, category) {
         }
     }
     return storyData;
-}
-
-function mangleTitle(title) {
-    var result = title.toString().toLowerCase().trim();
-
-    if (result.startsWith("the ")) {
-        result = result.substring(4);
-    }
-    else if (result.startsWith("a ")) {
-        result = result.substring(2);
-    }
-    else if (result.startsWith("an ")) {
-        result = result.substring(3);
-    }
-    result = result.replace(/[^ A-Za-z0-9]/g, '');
-
-    return result;
 }
 
 function makeSection(author, heading, category) {
