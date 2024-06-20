@@ -53,16 +53,16 @@ GM_addStyle("table {display: block; overflow-x: auto; white-space: nowrap !impor
 var newScript = document.createElement("script");
 
 newScript.innerText =
-    "var sortOrder = 1; " +
-    "const sortInfo = new Map([" +
+  "var sortOrder = 1; " +
+  "const sortInfo = new Map([" +
     "['story', {order: 1, col: 'title'}]," +
     "['poem', {order: 1, col: 'title'}]," +
     "['illustra', {order: 1, col: 'title'}]," +
     "['audio', {order: 1, col: 'title'}]" +
-    "]);" +
+  "]);" +
 
-    "function sortTable(col, category) " +
-    "{" +
+  "function sortTable(col, category) " +
+  "{" +
     "sortOrder = sortInfo.get(category).order;" +
     "if (sortInfo.get(category).col == col) {" +
     "  sortOrder = -sortOrder;" +
@@ -89,10 +89,10 @@ newScript.innerText =
 
     "stories.sort(sortCompare);" +
     "document.getElementById(category + \"_table\").innerHTML = makeTable(stories, category);" +
-    "}" +
+  "}" +
 
-    "function makeTable(stories, category)" +
-    "{" +
+  "function makeTable(stories, category)" +
+  "{" +
     "    var tableBody = " +
     "        \"<table><tr>\" +" +
     "        \"<th><b><a href=\\\"#\\\" onClick=\\\"sortTable('title','\" + category + \"')\\\">Title</a></b></th>\" +" +
@@ -111,35 +111,39 @@ newScript.innerText =
     "    }" +
     "    tableBody += \"</table>\";" +
     "    return tableBody;" +
-    "}" +
-    "function titleCompare(a, b)" +
-    "{" +
+  "}" +
+
+  "function titleCompare(a, b)" +
+  "{" +
     "return sortOrder * a.sort_title.localeCompare(b.sort_title);" +
-    "}" +
-    "function categoryCompare(a, b)" +
-    "{" +
+  "}" +
+
+  "function categoryCompare(a, b)" +
+  "{" +
     "var result = sortOrder * a.category.localeCompare(b.category);" +
     "if (result != 0) return result;" +
     "return titleCompare(a,b);" +
-    "}" +
-    "function dateCompare(b, a)" +
-    "{" +
+  "}" +
+
+  "function dateCompare(b, a)" +
+  "{" +
     "return sortOrder * a.date.localeCompare(b.date);" +
+  "}" +
+
+  "function storyRating(story)" +
+  "{" +
+    "var result = \"\";" +
+    "if (story.rating != null && story.rating != 0) {" +
+    "    result += \"&nbsp;(\" + story.rating + \")\";" +
     "}" +
-    "function storyRating(story)" +
-    "{" +
-    "    var result = \"\";" +
-    "    if (story.rating != null) {" +
-    "        result += \"&nbsp;(\" + story.rating + \")\";" +
-    "    }" +
-    "    if (story.is_new) {" +
-    "        result += \"&nbsp;<img src='/imagesv2/icons08/new08s.gif' style='vertical-align:middle; display:inline;'>\";" +
-    "    }" +
-    "    if (story.is_hot) {" +
-    "        result += \"&nbsp;<img src='/imagesv2/icons08/hot08s.gif' style='vertical-align:middle; display:inline;'>\";" +
-    "    }" +
-    "    return result;" +
-    "}";
+    "if (story.is_new) {" +
+    "    result += \"&nbsp;<img src='/imagesv2/icons08/new08s.gif' style='vertical-align:middle; display:inline;'>\";" +
+    "}" +
+    "if (story.is_hot) {" +
+    "    result += \"&nbsp;<img src='/imagesv2/icons08/hot08s.gif' style='vertical-align:middle; display:inline;'>\";" +
+    "}" +
+    "return result;" +
+  "}";
 
 
 document.head.appendChild(newScript);
@@ -148,11 +152,6 @@ document.head.appendChild(newScript);
 fixThePage();
 
 // ------------------------
-
-// function to pad a number with zeros
-function ZeroPad(num, places) {
-    return String(num).padStart(places, '0');
-}
 
 // return the response from the url
 function Get(author, category) {
@@ -175,6 +174,15 @@ function Get(author, category) {
         return storyData;
     }
 
+    var zeroPad = (num, places) => String(num).padStart(places, '0');
+
+    var fixRating = (rating) => {
+        if (rating != null && rating != 0) {
+            return rating;
+        }
+        return null;
+    }
+
     // iterate through json story info and add to story array
     for (var i = 0; i < storyObj.length; i++) {
         var st = storyObj[i];
@@ -190,7 +198,7 @@ function Get(author, category) {
                 url: "https://www.literotica.com/" + urlPart + "/" + st.url,
                 description: st.description,
                 category: st.category_info.pageUrl,
-                rating: st.rate_all,
+                rating: fixRating(st.rate_all),
                 is_hot: st.is_hot,
                 is_new: st.is_new
             });
@@ -198,7 +206,10 @@ function Get(author, category) {
         else {
             // multi-chapter.  add each individual chapter.
             var places;
-            if (st.parts.length < 100) {
+            if (st.parts.length < 10) {
+                places = 1;
+            }
+            else if (st.parts.length < 100) {
                 places = 2;
             }
             else if (st.parts.length < 1000) {
@@ -212,13 +223,13 @@ function Get(author, category) {
                 var part = st.parts[j];
                 urlPart = part.category_info.type.slice(0, 1);
                 storyData.push({
-                    title: st.title + " " + ZeroPad(j + 1, places) + " - " + part.title,
-                    sort_title: mangleTitle(st.title + " " + ZeroPad(j + 1, places) + " - " + part.title),
+                    title: st.title + " " + zeroPad(j + 1, places) + " - " + part.title,
+                    sort_title: mangleTitle(st.title + " " + zeroPad(j + 1, places) + " - " + part.title),
                     date: new Date(part.date_approve).toISOString().slice(0, 10),
                     url: "https://www.literotica.com/" + urlPart + "/" + part.url,
                     description: part.description,
                     category: part.category_info.pageUrl,
-                    rating: part.rate_all,
+                    rating: fixRating(part.rate_all),
                     is_hot: part.is_hot,
                     is_new: part.is_new
                 });
