@@ -13,10 +13,7 @@
 // @name          Literotica - replace author works page
 // @namespace     http://none.com/
 // @description   Replace author works page
-// @match       https://www.literotica.com/authors/*/works/stories
-// @match       https://www.literotica.com/authors/*/works/poetry
-// @match       https://www.literotica.com/authors/*/works/artworks
-// @match       https://www.literotica.com/authors/*/works/audio
+// @match       https://www.literotica.com/authors/*/works/*
 // @version 0.02
 // @grant GM_addStyle
 // @run-at document-end
@@ -53,16 +50,16 @@ GM_addStyle("table {display: block; overflow-x: auto; white-space: nowrap !impor
 var newScript = document.createElement("script");
 
 newScript.innerText =
-  "var sortOrder = 1; " +
-  "const sortInfo = new Map([" +
+    "var sortOrder = 1; " +
+    "const sortInfo = new Map([" +
     "['story', {order: 1, col: 'title'}]," +
     "['poem', {order: 1, col: 'title'}]," +
     "['illustra', {order: 1, col: 'title'}]," +
     "['audio', {order: 1, col: 'title'}]" +
-  "]);" +
+    "]);" +
 
-  "function sortTable(col, category) " +
-  "{" +
+    "function sortTable(col, category) " +
+    "{" +
     "sortOrder = sortInfo.get(category).order;" +
     "if (sortInfo.get(category).col == col) {" +
     "  sortOrder = -sortOrder;" +
@@ -89,10 +86,10 @@ newScript.innerText =
 
     "stories.sort(sortCompare);" +
     "document.getElementById(category + \"_table\").innerHTML = makeTable(stories, category);" +
-  "}" +
+    "}" +
 
-  "function makeTable(stories, category)" +
-  "{" +
+    "function makeTable(stories, category)" +
+    "{" +
     "    var tableBody = " +
     "        \"<table><tr>\" +" +
     "        \"<th><b><a href=\\\"#\\\" onClick=\\\"sortTable('title','\" + category + \"')\\\">Title</a></b></th>\" +" +
@@ -111,27 +108,27 @@ newScript.innerText =
     "    }" +
     "    tableBody += \"</table>\";" +
     "    return tableBody;" +
-  "}" +
+    "}" +
 
-  "function titleCompare(a, b)" +
-  "{" +
+    "function titleCompare(a, b)" +
+    "{" +
     "return sortOrder * a.sort_title.localeCompare(b.sort_title);" +
-  "}" +
+    "}" +
 
-  "function categoryCompare(a, b)" +
-  "{" +
+    "function categoryCompare(a, b)" +
+    "{" +
     "var result = sortOrder * a.category.localeCompare(b.category);" +
     "if (result != 0) return result;" +
     "return titleCompare(a,b);" +
-  "}" +
+    "}" +
 
-  "function dateCompare(b, a)" +
-  "{" +
+    "function dateCompare(b, a)" +
+    "{" +
     "return sortOrder * a.date.localeCompare(b.date);" +
-  "}" +
+    "}" +
 
-  "function storyRating(story)" +
-  "{" +
+    "function storyRating(story)" +
+    "{" +
     "var result = \"\";" +
     "if (story.rating != null) {" +
     "    result += \"&nbsp;(\" + story.rating + \")\";" +
@@ -143,7 +140,7 @@ newScript.innerText =
     "    result += \"&nbsp;<img src='data:image/gif;base64,R0lGODlhCQAJAJEAAPaekP///+w0FgAAACH5BAAAAAAALAAAAAAJAAkAAAIRhI5iyRL4oIShxnOvmw0tBhQAOw==' style='vertical-align:middle; display:inline;'>\";" +
     "}" +
     "return result;" +
-  "}";
+    "}";
 
 
 document.head.appendChild(newScript);
