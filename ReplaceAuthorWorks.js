@@ -1,5 +1,5 @@
 // Literotica - replace author works page
-// version 0.01
+// version 0.03
 //
 // --------------------------------------------------------------------
 //
@@ -14,7 +14,7 @@
 // @namespace     http://none.com/
 // @description   Replace author works page
 // @match       https://www.literotica.com/authors/*/works/*
-// @version 0.02
+// @version 0.03
 // @grant GM_addStyle
 // @run-at document-end
 // ==/UserScript==
@@ -50,16 +50,16 @@ GM_addStyle("table {display: block; overflow-x: auto; white-space: nowrap !impor
 var newScript = document.createElement("script");
 
 newScript.innerText =
-    "var sortOrder = 1; " +
-    "const sortInfo = new Map([" +
+  "var sortOrder = 1; " +
+  "const sortInfo = new Map([" +
     "['story', {order: 1, col: 'title'}]," +
     "['poem', {order: 1, col: 'title'}]," +
     "['illustra', {order: 1, col: 'title'}]," +
     "['audio', {order: 1, col: 'title'}]" +
-    "]);" +
+  "]);" +
 
-    "function sortTable(col, category) " +
-    "{" +
+  "function sortTable(col, category) " +
+  "{" +
     "sortOrder = sortInfo.get(category).order;" +
     "if (sortInfo.get(category).col == col) {" +
     "  sortOrder = -sortOrder;" +
@@ -86,10 +86,10 @@ newScript.innerText =
 
     "stories.sort(sortCompare);" +
     "document.getElementById(category + \"_table\").innerHTML = makeTable(stories, category);" +
-    "}" +
+  "}" +
 
-    "function makeTable(stories, category)" +
-    "{" +
+  "function makeTable(stories, category)" +
+  "{" +
     "    var tableBody = " +
     "        \"<table><tr>\" +" +
     "        \"<th><b><a href=\\\"#\\\" onClick=\\\"sortTable('title','\" + category + \"')\\\">Title</a></b></th>\" +" +
@@ -108,27 +108,27 @@ newScript.innerText =
     "    }" +
     "    tableBody += \"</table>\";" +
     "    return tableBody;" +
-    "}" +
+  "}" +
 
-    "function titleCompare(a, b)" +
-    "{" +
+  "function titleCompare(a, b)" +
+  "{" +
     "return sortOrder * a.sort_title.localeCompare(b.sort_title);" +
-    "}" +
+  "}" +
 
-    "function categoryCompare(a, b)" +
-    "{" +
+  "function categoryCompare(a, b)" +
+  "{" +
     "var result = sortOrder * a.category.localeCompare(b.category);" +
     "if (result != 0) return result;" +
     "return titleCompare(a,b);" +
-    "}" +
+  "}" +
 
-    "function dateCompare(b, a)" +
-    "{" +
+  "function dateCompare(b, a)" +
+  "{" +
     "return sortOrder * a.date.localeCompare(b.date);" +
-    "}" +
+  "}" +
 
-    "function storyRating(story)" +
-    "{" +
+  "function storyRating(story)" +
+  "{" +
     "var result = \"\";" +
     "if (story.rating != null) {" +
     "    result += \"&nbsp;(\" + story.rating + \")\";" +
@@ -140,33 +140,64 @@ newScript.innerText =
     "    result += \"&nbsp;<img src='data:image/gif;base64,R0lGODlhCQAJAJEAAPaekP///+w0FgAAACH5BAAAAAAALAAAAAAJAAkAAAIRhI5iyRL4oIShxnOvmw0tBhQAOw==' style='vertical-align:middle; display:inline;'>\";" +
     "}" +
     "return result;" +
-    "}";
+  "}";
 
 
 document.head.appendChild(newScript);
+
+var categoryCount = GetCategoryCounts(author);
+
+debugger;
 
 // and fix the page.
 fixThePage();
 
 // ------------------------
 
-
 // return the response from the url
-function Get(author, category) {
-    var url = "https://literotica.com/api/3/users/" + author + "/series_and_works?params={%22page%22%3A1%2C%22pageSize%22%3A5000%2C%22type%22%3A%22" + category + "%22%2C%22listType%22%3A%22expanded%22}";
+function GetJsonUrl(url)
+{
     var Httpreq = new XMLHttpRequest(); // a new request
     Httpreq.open("GET", url, false);
     Httpreq.setRequestHeader("Cache-Control", "no-cache, no-store, max-age=0");
     Httpreq.setRequestHeader("Expires", "Tue, 01 Jan 1980 1:00:00 GMT");
     Httpreq.setRequestHeader("Pragma", "no-cache");
     Httpreq.send(null);
+    return JSON.parse(Httpreq.responseText);
+}
 
-    var jsonObj = JSON.parse(Httpreq.responseText);
+// get count of the different work types for this author
+function GetCategoryCounts(author)
+{
+    var url = "https://literotica.com/api/3/users/" + author + "?params={%22withProfile%22:false}";
+    var jsonObj = GetJsonUrl(url);
+    var userObj = jsonObj.user;
 
-    var storyObj = jsonObj.data;
+    return new Map([
+        ["story", userObj.stories_count],
+        ["poem", userObj.poems_count],
+        ["illustra", userObj.illustrations_count],
+        ["audio", userObj.audios_count]
+    ]);
+}
 
+function GetCategoryData(author, category)
+{
     // create array that we will use
     const storyData = [];
+
+    var count = categoryCount.get(category);
+    if (count == 0) {
+        return storyData;
+    }
+
+    var url = "https://literotica.com/api/3/users/" + author + "/series_and_works?params={%22page%22%3A1%2C%22pageSize%22%3A" + categoryCount.get(category) + "%2C%22type%22%3A%22" + category + "%22%2C%22listType%22%3A%22expanded%22}";
+
+    debugger;
+
+    var jsonObj = GetJsonUrl(url);
+
+    var storyObj = jsonObj.data;
 
     if (storyObj.length < 1) {
         return storyData;
@@ -256,7 +287,7 @@ function Get(author, category) {
 
 function makeSection(author, heading, category) {
     // create array that we will use
-    const storyData = Get(author, category);
+    const storyData = GetCategoryData(author, category);
 
     if (storyData.length == 0) {
         return "";
