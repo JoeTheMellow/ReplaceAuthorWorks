@@ -1,5 +1,5 @@
 // Literotica - replace author works page
-// version 0.03
+// version 0.04
 //
 // --------------------------------------------------------------------
 //
@@ -14,7 +14,9 @@
 // @namespace     http://none.com/
 // @description   Replace author works page
 // @match       https://www.literotica.com/authors/*/works/*
-// @version 0.03
+// @version 0.04
+// @updateurl https://github.com/JoeTheMellow/ReplaceAuthorWorks/raw/main/ReplaceAuthorWorks.user.js
+// @downloadurl https://github.com/JoeTheMellow/ReplaceAuthorWorks/raw/main/ReplaceAuthorWorks.user.js
 // @grant GM_addStyle
 // @run-at document-end
 // ==/UserScript==
