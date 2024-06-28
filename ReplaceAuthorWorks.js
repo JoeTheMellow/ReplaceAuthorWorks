@@ -147,7 +147,12 @@ document.head.appendChild(newScript);
 
 var categoryCount = GetCategoryCounts(author);
 
-debugger;
+var sectionCount = 0;
+categoryCount.forEach (function(value, key) {
+    if (value > 0) {
+        sectionCount++;
+    }
+})
 
 // and fix the page.
 fixThePage();
@@ -186,25 +191,15 @@ function GetCategoryData(author, category)
     // create array that we will use
     const storyData = [];
 
-    var count = categoryCount.get(category);
-    if (count == 0) {
+    var maxCount = categoryCount.get(category);
+    if (maxCount == 0) {
         return storyData;
     }
 
-    var url = "https://literotica.com/api/3/users/" + author + "/series_and_works?params={%22page%22%3A1%2C%22pageSize%22%3A" + categoryCount.get(category) + "%2C%22type%22%3A%22" + category + "%22%2C%22listType%22%3A%22expanded%22}";
-
-    debugger;
-
-    var jsonObj = GetJsonUrl(url);
-
-    var storyObj = jsonObj.data;
-
-    if (storyObj.length < 1) {
-        return storyData;
-    }
-
+    // function to zero pad a number
     var zeroPad = (num, places) => String(num).padStart(places, '0');
 
+    // function to show a rating if there is one
     var fixRating = (rating) => {
         if (rating != null && rating != 0) {
             return rating;
@@ -212,6 +207,7 @@ function GetCategoryData(author, category)
         return null;
     }
 
+    // function to create sort title
     var mangleTitle = (title) => {
         var result = title.toString().toLowerCase().trim();
 
@@ -229,63 +225,88 @@ function GetCategoryData(author, category)
         return result;
     }
 
-    // iterate through json story info and add to story array
-    for (var i = 0; i < storyObj.length; i++) {
-        var st = storyObj[i];
-        var urlPart;
 
-        if (st.parts == null) {
-            // single-chapter
-            urlPart = st.category_info.type.slice(0, 1);
-            storyData.push({
-                title: st.title,
-                sort_title: mangleTitle(st.title),
-                date: new Date(st.date_approve).toISOString().slice(0, 10),
-                url: "https://www.literotica.com/" + urlPart + "/" + st.url,
-                description: st.description,
-                category: st.category_info.pageUrl,
-                rating: fixRating(st.rate_all),
-                is_hot: st.is_hot,
-                is_new: st.is_new
-            });
-        }
-        else {
-            // multi-chapter.  add each individual chapter.
-            var places;
-            if (st.parts.length < 10) {
-                places = 1;
-            }
-            else if (st.parts.length < 100) {
-                places = 2;
-            }
-            else if (st.parts.length < 1000) {
-                places = 3;
-            }
-            else {
-                places = 4;
-            }
+    var page = 0;
+    var curCount = maxCount;
 
-            for (var j = 0; j < st.parts.length; j++) {
-                var part = st.parts[j];
-                urlPart = part.category_info.type.slice(0, 1);
-                storyData.push({
-                    title: st.title + " " + zeroPad(j + 1, places) + " - " + part.title,
-                    sort_title: mangleTitle(st.title + " " + zeroPad(j + 1, places) + " - " + part.title),
-                    date: new Date(part.date_approve).toISOString().slice(0, 10),
-                    url: "https://www.literotica.com/" + urlPart + "/" + part.url,
-                    description: part.description,
-                    category: part.category_info.pageUrl,
-                    rating: fixRating(part.rate_all),
-                    is_hot: part.is_hot,
-                    is_new: part.is_new
-                });
-            }
-        }
+    while (curCount > 0) {
+		// grab 500 stories at a time
+        page++;
+		var pageCount = 500;
+		curCount -= pageCount;
+
+        var url = "https://literotica.com/api/3/users/" + author + "/series_and_works?params={%22page%22%3A" + page + "%2C%22pageSize%22%3A" + pageCount + "%2C%22type%22%3A%22" + category + "%22%2C%22listType%22%3A%22expanded%22}";
+
+        var jsonObj = GetJsonUrl(url);
+
+        var storyObj = jsonObj.data;
+
+		// iterate through json story info and add to story array
+		for (var i = 0; i < storyObj.length; i++) {
+			var st = storyObj[i];
+			var urlPart;
+
+			if (st.parts == null) {
+				// single-chapter
+				urlPart = st.category_info.type.slice(0, 1);
+				storyData.push({
+					title: st.title,
+					sort_title: mangleTitle(st.title),
+					date: new Date(st.date_approve).toISOString().slice(0, 10),
+					url: "https://www.literotica.com/" + urlPart + "/" + st.url,
+					description: st.description,
+					category: st.category_info.pageUrl,
+					rating: fixRating(st.rate_all),
+					is_hot: st.is_hot,
+					is_new: st.is_new
+				});
+			}
+			else {
+				// multi-chapter.  add each individual chapter.
+				var places;
+				if (st.parts.length < 10) {
+					places = 1;
+				}
+				else if (st.parts.length < 100) {
+					places = 2;
+				}
+				else if (st.parts.length < 1000) {
+					places = 3;
+				}
+				else {
+					places = 4;
+				}
+
+				for (var j = 0; j < st.parts.length; j++) {
+					var part = st.parts[j];
+					urlPart = part.category_info.type.slice(0, 1);
+					storyData.push({
+						title: st.title + " " + zeroPad(j + 1, places) + " - " + part.title,
+						sort_title: mangleTitle(st.title + " " + zeroPad(j + 1, places) + " - " + part.title),
+						date: new Date(part.date_approve).toISOString().slice(0, 10),
+						url: "https://www.literotica.com/" + urlPart + "/" + part.url,
+						description: part.description,
+						category: part.category_info.pageUrl,
+						rating: fixRating(part.rate_all),
+						is_hot: part.is_hot,
+						is_new: part.is_new
+					});
+				}
+			}
+		}
     }
     return storyData;
 }
 
-function makeSection(author, heading, category) {
+function makeIndexLine(title, category)
+{
+    if (categoryCount.get(category) == 0) {
+        return "";
+    }
+    return "<a href=\"#" + category + "\">" + title + "</a> ";
+}
+
+function makeSection(author, heading, category, indexLine) {
     // create array that we will use
     const storyData = GetCategoryData(author, category);
 
@@ -298,7 +319,7 @@ function makeSection(author, heading, category) {
 
     // Make the page body using the story array
 
-    var pageBody = "<br/><h2 align=\"center\">" + heading + decodeURIComponent(author) + "</h2><br/>" +
+    var pageBody = "<br/>" + indexLine + "<h2 id=\"" + category + "\" align=\"center\">" + heading + " by " + decodeURIComponent(author) + " (" + categoryCount.get(category) + ")</h2><br/>" +
         "<div id=\"" + category + "_table\">" +
         makeTable(storyData, category) +
         "</div>" +
@@ -327,17 +348,28 @@ function fixThePage() {
 
     var pageBody = "";
 
+    var indexLine = "";
+    if (sectionCount > 1) {
+        indexLine += makeIndexLine("Stories", "story");
+        indexLine += makeIndexLine("Poems", "poem");
+        indexLine += makeIndexLine("Artworks", "illustra");
+        indexLine += makeIndexLine("Audios", "audio");
+        indexLine = "<p align=\"center\">Jump to: " + indexLine + "</p><br/>";
+    }
+
     // create story section
-    pageBody += makeSection(author, "Stories by ", "story");
+    pageBody += makeSection(author, "Stories", "story", indexLine);
 
     // create poem section
-    pageBody += makeSection(author, "Poems by ", "poem");
+    pageBody += makeSection(author, "Poems", "poem", indexLine);
 
     // create art section
-    pageBody += makeSection(author, "Artworks by ", "illustra");
+    pageBody += makeSection(author, "Artworks", "illustra", indexLine);
 
     // create audio section
-    pageBody += makeSection(author, "Audios by ", "audio");
+    pageBody += makeSection(author, "Audios", "audio", indexLine);
+
+    pageBody += "<br/>" + indexLine;
 
     page.innerHTML = pageBody;
 }
