@@ -13,7 +13,7 @@
 // @namespace     http://none.com/
 // @description   Replace author works page
 // @match       https://www.literotica.com/authors/*/works/*
-// @version 0.06
+// @version 0.07
 // @grant GM_addStyle
 // @run-at document-end
 // ==/UserScript==
