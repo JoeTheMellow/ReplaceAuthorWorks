@@ -44,7 +44,7 @@ author = author.substring(0, pos);
 GM_addStyle("table {display: block; overflow-x: auto; white-space: nowrap !important;} " +
     "th { padding: 2px !important; font-size: 14px !important; border: 1px solid black !important; text-align: center !important;} " +
     "td { padding: 2px !important; font-size: 11px !important; border: 1px solid black !important; padding-right: 6px !important;} " +
-    "a {color:blue !important;} a:visited {color: purple !important;}");
+    "a {color:dodgerblue !important;} a:visited {color: purple !important;}");
 
 var newScript = document.createElement("script");
 
@@ -279,9 +279,17 @@ function GetCategoryData(author, category)
 				for (var j = 0; j < st.parts.length; j++) {
 					var part = st.parts[j];
 					urlPart = part.category_info.type.slice(0, 1);
+                    var partTitle = part.title;
+                    if (partTitle.toLowerCase().startsWith(st.title.toLowerCase())) {
+                        partTitle = partTitle.substring(st.title.length);
+                        partTitle = partTitle.replace(/(^\W*)/g, '');
+                        if (partTitle == "") {
+                            partTitle = (j+1);
+                        }
+                    }
 					storyData.push({
-						title: st.title + " " + zeroPad(j + 1, places) + " - " + part.title,
-						sort_title: mangleTitle(st.title + " " + zeroPad(j + 1, places) + " - " + part.title),
+						title: st.title + " " + zeroPad(j + 1, places) + " - " + partTitle,
+						sort_title: mangleTitle(st.title + " " + zeroPad(j + 1, places) + " - " + partTitle),
 						date: new Date(part.date_approve).toISOString().slice(0, 10),
 						url: "https://www.literotica.com/" + urlPart + "/" + part.url,
 						description: part.description,
