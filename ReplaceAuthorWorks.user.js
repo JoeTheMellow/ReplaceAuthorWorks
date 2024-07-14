@@ -13,7 +13,7 @@
 // @namespace     http://none.com/
 // @description   Replace author works page
 // @match       https://www.literotica.com/authors/*/works/*
-// @version 0.07
+// @version 0.08
 // @grant GM_addStyle
 // @run-at document-end
 // ==/UserScript==
@@ -352,6 +352,8 @@ function fixThePage() {
     }
 
     var page = pageList.snapshotItem(0);
+    //page.classList.remove("page__extended");
+    document.body.style.backgroundColor = "#FFFFFF";
 
     var pageBody = "";
 
