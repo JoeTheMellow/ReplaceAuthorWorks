@@ -280,16 +280,19 @@ function GetCategoryData(author, category)
 					var part = st.parts[j];
 					urlPart = part.category_info.type.slice(0, 1);
                     var partTitle = part.title;
-                    if (partTitle.toLowerCase().startsWith(st.title.toLowerCase())) {
+                    if (partTitle.toString().toLowerCase().startsWith(st.title.toString().toLowerCase())) {
                         partTitle = partTitle.substring(st.title.length);
                         partTitle = partTitle.replace(/(^\W*)/g, '');
-                        if (partTitle == "") {
-                            partTitle = (j+1);
-                        }
+                        //if (partTitle == "") {
+                        //    partTitle = (j+1);
+                        //}
+                    }
+                    if (partTitle != "") {
+                        partTitle = " - " + partTitle;
                     }
 					storyData.push({
-						title: st.title + " " + zeroPad(j + 1, places) + " - " + partTitle,
-						sort_title: mangleTitle(st.title + " " + zeroPad(j + 1, places) + " - " + partTitle),
+						title: st.title + " " + zeroPad(j + 1, places) + partTitle,
+						sort_title: mangleTitle(st.title + " " + zeroPad(j + 1, places) + partTitle),
 						date: new Date(part.date_approve).toISOString().slice(0, 10),
 						url: "https://www.literotica.com/" + urlPart + "/" + part.url,
 						description: part.description,
