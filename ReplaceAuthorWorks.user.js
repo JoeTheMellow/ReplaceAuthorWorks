@@ -13,7 +13,7 @@
 // @namespace     http://none.com/
 // @description   Replace author works page
 // @match       https://www.literotica.com/authors/*/works/*
-// @version 0.08
+// @version 0.09
 // @grant GM_addStyle
 // @run-at document-end
 // ==/UserScript==
@@ -80,6 +80,9 @@ newScript.innerText =
     "else if (col == \"category\") {" +
     "  sortCompare = categoryCompare;" +
     "}" +
+    "else if (col == \"rating\") {" +
+    "  sortCompare = ratingCompare;" +
+    "}" +
 
     "var stories = JSON.parse(document.getElementById(category + \"Data\").innerHTML);" +
 
@@ -91,7 +94,7 @@ newScript.innerText =
   "{" +
     "    var tableBody = " +
     "        \"<table><tr>\" +" +
-    "        \"<th><b><a href=\\\"#\\\" onClick=\\\"sortTable('title','\" + category + \"')\\\">Title</a></b></th>\" +" +
+    "        \"<th><b><a href=\\\"#\\\" onClick=\\\"sortTable('title','\" + category + \"')\\\">Title</a> <a href=\\\"#\\\" onClick=\\\"sortTable('rating','\" + category + \"')\\\">(Rating)</a></b></th>\" +" +
     "        \"<th></th>\" +" +
     "        \"<th><b><a href=\\\"#\\\" onClick=\\\"sortTable('date','\" + category + \"')\\\">Date</a></b></th>\" +" +
     "        \"<th><b><a href=\\\"#\\\" onClick=\\\"sortTable('category','\" + category + \"')\\\">Category</a></b></th>\" +" +
@@ -124,6 +127,15 @@ newScript.innerText =
   "function dateCompare(b, a)" +
   "{" +
     "return sortOrder * a.date.localeCompare(b.date);" +
+  "}" +
+
+  "function ratingCompare(b, a)" +
+  "{" +
+    "var a1 = a.rating ?? 0;" +
+    "var b1 = b.rating ?? 0;" +
+    "if (a1 > b1) return sortOrder;" +
+    "if (a1 < b1) return -sortOrder;" +
+    "return 0;" +
   "}" +
 
   "function storyRating(story)" +
