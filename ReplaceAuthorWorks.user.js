@@ -13,7 +13,7 @@
 // @namespace     http://none.com/
 // @description   Replace author works page
 // @match       https://www.literotica.com/authors/*/works/*
-// @version 0.09
+// @version 0.10
 // @grant GM_addStyle
 // @run-at document-end
 // ==/UserScript==
@@ -102,7 +102,7 @@ newScript.innerText =
     "    for (var i = 0; i < stories.length; i++) {" +
     "        var story = stories[i];" +
     "        tableBody += \"<tr>\" +" +
-    "            \"<td><a href=\\\"\" + story.url + \"\\\">\" + story.title + \"</a>\" + storyRating(story) + \"</td>\" +" +
+    "            \"<td><a target=\\\"_blank\\\" href=\\\"\" + story.url + \"\\\">\" + story.title + \"</a>\" + storyRating(story) + \"</td>\" +" +
     "            \"<td>\" + story.description + \"</td>\" +" +
     "            \"<td align=center>\" + story.date + \"</td>\" +" +
     "            \"<td><a target=\\\"_self\\\" href=\\\"https://www.literotica.com/c/\" + story.category+ \"\\\">\" + story.category + \"</a></td>\" +" +
