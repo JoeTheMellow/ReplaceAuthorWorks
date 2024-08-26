@@ -13,7 +13,7 @@
 // @namespace     http://none.com/
 // @description   Replace author works page
 // @match       https://www.literotica.com/authors/*/works/*
-// @version 0.10
+// @version 0.11
 // @grant GM_addStyle
 // @run-at document-end
 // ==/UserScript==
@@ -303,7 +303,7 @@ function GetCategoryData(author, category)
                         partTitle = " - " + partTitle;
                     }
 					storyData.push({
-						title: st.title + " " + zeroPad(j + 1, places) + partTitle,
+						title: st.title + " " + (j + 1) + partTitle,
 						sort_title: mangleTitle(st.title + " " + zeroPad(j + 1, places) + partTitle),
 						date: new Date(part.date_approve).toISOString().slice(0, 10),
 						url: "https://www.literotica.com/" + urlPart + "/" + part.url,
@@ -397,6 +397,3 @@ function fixThePage() {
 
     page.innerHTML = pageBody;
 }
-
-
-
